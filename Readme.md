@@ -54,9 +54,12 @@ library B
 etc...
 ```
 
-The application gonna crush on his machine, because he don't have all the dependencies your application needs to run correctly.   
+The application gonna crash on his machine, because he don't have all the dependencies your application needs to run correctly.   
 
 This is the classic problem : **IT WORKS ON MY MACHINE!**   
+<p align=center>
+	<img src="./images/problem.png" width=400>
+</p>
 
 You may think why not using a virtual machine which contain all the dependencies of the application to run and work?  
 
@@ -88,3 +91,19 @@ All the containers shares the host's kernel, we don't need an independent OS for
 
 So Containerization is the process of creating a container, and when we say process we don't mean a linux running process, we mean the steps we pass from so the container need to be created.   
 
+### How it works
+We already know the container use the same host's kernel, then why doesn't containers see each other files ? and one a container can't take all the CPU memory?  
+
+The isolation is achived using mainly two **linux** features which make boundries for each container :  
+#### namespaces (who can see what?)
+namespaces give a process its own isolated view of some system resource, its the one responsible of what a container can see, namespaces separate:  
++ Processes: each container see only its own processes;  
++ Files: each container see its own filesystem;  
++ Network: each container has its own IP;  
++ Users: permissions are separated.
+<p align=center>
+	<img src="./images/namespaces.png" width=400>
+</p>
+
+There are several types of namespaces :  
++ **PID namespace :** 

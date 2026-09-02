@@ -58,7 +58,7 @@ The application gonna crash on his machine, because he don't have all the depend
 
 This is the classic problem : **IT WORKS ON MY MACHINE!**   
 <p align=center>
-	<img src="./images/problem.png" width=400>
+	<img src="./images/problem.png" width=600>
 </p>
 
 You may think why not using a virtual machine which contain all the dependencies of the application to run and work?  
@@ -95,15 +95,87 @@ So Containerization is the process of creating a container, and when we say proc
 We already know the container use the same host's kernel, then why doesn't containers see each other files ? and one a container can't take all the CPU memory?  
 
 The isolation is achived using mainly two **linux** features which make boundries for each container :  
-#### namespaces (who can see what?)
+#### namespaces (what a container can see?)
 namespaces give a process its own isolated view of some system resource, its the one responsible of what a container can see, namespaces separate:  
 + Processes: each container see only its own processes;  
 + Files: each container see its own filesystem;  
 + Network: each container has its own IP;  
-+ Users: permissions are separated.
++ Users: permissions are separated.  
 <p align=center>
-	<img src="./images/namespaces.png" width=400>
+	<img src="./images/namespaces.png" width=600>
 </p>
 
 There are several types of namespaces :  
-+ **PID namespace :** 
++ **PID namespace :** controls what a container can see;  
++ **Mount namespace :** controls what filesystems a process can see;  
++ **Network namespace :** Each container can get its own IP address, routing table, ports. therefore the container can have its own network environment;  
+
+So this is how namespaces provide isolation :  
+```js
+					Linux Kernel
+                         │
+        ┌────────────────┼────────────────┐
+        │                │                │
+        ▼                ▼                ▼
+
+      HOST          Container A       Container B
+
+    processes         processes         processes
+    network           network           network
+    filesystem        filesystem        filesystem
+```
+
+
+#### CGROUPS (How much a container can use)
+```js
+                    HOST
+                      │
+                ┌─────┴─────┐
+                │           │
+           Container A  Container B
+             512 MB        2 GB
+             2 CPU         4 CPU
+```
+
+CGROUPS stands for Control Groups which decide how much resources a container can use, resources could be CPU, RAM or DISK I/O.   
+
+So even if a container misbehaves or the app has memory leak the system gonna be safe.    
+
+## Container
+<p align=center>
+	<img src="./images/container.jpg" width=400>
+</p>
+
+A container is the isolated execution environment created and configured using containerization mechanisms.  
+```js
+						                CONTAINER
+						┌─────────────────────────────────┐
+						│                                 │
+						│  Filesystem                     │
+						│  Network namespace              │
+						│  PID namespace                  │
+						│  Mount namespace                │
+						│  User namespace                 │
+						│  cgroup                         │
+						│  capabilities                   │
+						│  security configuration         │
+						│                                 │
+						│       Processes                 │
+						│       ├── PID 1 → nginx         │
+						│       ├── PID 7 → worker        │
+						│       └── PID 8 → worker        │
+						│                                 │
+						└─────────────────────────────────┘
+						                 │
+						                 │ shares
+						                 ▼
+						          HOST LINUX KERNEL
+```
+
+## Docker
+<p align=center>
+	<img src="./images/docker.jpg" width=400>
+</p>
+
+ Docker is an open platform for developing, shipping, and running applications. It's a software that make containerization easier.  
+It's a containerization platform and tooling ecosystem that provides mechanisms for building container images, creating, running, networking, storing and managing containers underlying container runtimes.  

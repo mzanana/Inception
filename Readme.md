@@ -14,7 +14,7 @@ what is the first step i should take exactly?
 
 **THIS IS WHY AM HERE!**  Am gonna make it easy for you don't worry.    
 
-# Containerization, Containers and Docker
+# Containerization, Container
 ## Introduction
 Those are the first keyword you should understand before starting anything else.  
 You need to understand the fundamentals. What are those keywords means ?? and what is the difference between them? and why we use them? What is the problem they came to solve ??  
@@ -142,11 +142,14 @@ CGROUPS stands for Control Groups which decide how much resources a container ca
 So even if a container misbehaves or the app has memory leak the system gonna be safe.    
 
 ## Container
+### Definition
 <p align=center>
 	<img src="./images/container.jpg" width=400>
 </p>
 
 A container is the isolated execution environment created and configured using containerization mechanisms.  
+### Visualization
+
 ```js
 						                CONTAINER
 						┌─────────────────────────────────┐
@@ -172,10 +175,66 @@ A container is the isolated execution environment created and configured using c
 						          HOST LINUX KERNEL
 ```
 
-## Docker
+### Containers vs VMs
+<p align=center>
+	<img src="./images/vms.jpg" width=400>
+</p>
+
++ **Containers :**  All the containers share the same host's OS, which make all the containers lightweight and are usualy in MegaBytes, this allows docker containers to boot up faster in matter of seconds
+
++ **Virtual Machinnes :** Each VM has its own OS inside it, which cause higher utilization of underlying resources as there are multiple operating systems and kernels running, and also VMs consume large space in GigaBytes, also it takes minutes to boot up
+
+# Docker
+
+## Definition
 <p align=center>
 	<img src="./images/docker.jpg" width=400>
 </p>
 
- Docker is an open platform for developing, shipping, and running applications. It's a software that make containerization easier.  
-It's a containerization platform and tooling ecosystem that provides mechanisms for building container images, creating, running, networking, storing and managing containers underlying container runtimes.  
+Docker is an open platform for developing, shipping, and running applications. It's a software that make containerization easier.  
+Docker provides mechanisms for building container images, creating, running, networking, storing and managing containers underlying container runtimes.  
+
+The main purpose of docker is to package and containerize applications, and to ship them anywhere, anytime as many times as you want.   
+
+## How it is done
+There is a lot of containerized versions of applications available, most organizations have theire own containerized and available in public docker repository called **Docker Hub** or **Docker Store**, we can find images of most operating systems, databases and other services and tools, to run an instance of debian you need just to type in the command line after installing docker on the host machine :   
+`docker run debian`   
+
+### containers and images
+We've talk about images here, what is the difference between images and containers ?  
+An image is a package and a template, it is used to create one or more containers.   
+Containers are running instances of images that are isolated and have their own environment and set of processes.   
+
+
+## Docker Editions
+### Entreprise Edition
+Entreprise edition is the certified and supported container platform that comes with image management, image security and other features. And this is a **paid** edition.   
+
+### Community Edition
+Community edition is the set of the free Docker products, ideal for individual developers, students and small teams.
+
+## Docker Commands
+### docker run
+`docker run <docker_image>` command is used to run a container from an image, when using `docker run nginx` :  
++ It look if we already have the image nginx on our host it use it, we mean by the host the system directory where all the images are stored not the current directory when running the commend, and usualy the default docker path where it stores **everything** docker uses is : `var/lib/docker/`;  
++ If the image is not found on the host, docker pull the image from the docker-hub.  
+The command create an instance of the application.  
+
+### docker ps
+`docker ps` command list all **running** containers and some basic **information** about them. (ps stand for process status).  
+Docker automatically by default give to each container a random ID and a random Name.  
+<p align=center>
+	<img src="./images/ps.png">
+</p>
+
+To see all containers running or not we simply use the tag `-a` , so the command is : `docker ps -a` <p align=center>
+	<img src="./images/ps -a.png">
+</p>
+
+### docker stop / docker rm
+If we want to stop a running container we use the command `docker run <name or ID>`, for example we want to delete `elated_napi` container which is the name Docker gives to the nginx container:  
+`docker stop elated_napi`  
+<p align=center>
+	<img src="./images/stop.png">
+</p>
+And if we want to delete it completely from 

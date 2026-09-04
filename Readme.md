@@ -200,11 +200,18 @@ The main purpose of docker is to package and containerize applications, and to s
 There is a lot of containerized versions of applications available, most organizations have theire own containerized and available in public docker repository called **Docker Hub** or **Docker Store**, we can find images of most operating systems, databases and other services and tools, to run an instance of debian you need just to type in the command line after installing docker on the host machine :   
 `docker run debian`   
 
-### containers and images
-We've talk about images here, what is the difference between images and containers ?  
-An image is a package and a template, it is used to create one or more containers.   
+### images and containers
+<p align=center>
+	<img src="./images/images.png" width=400>
+</p>
+
+We've talk about images in the last part, but what is the difference between images and containers ?  
+An image is a package or a template, it is used to create one or more containers.   
 Containers are running instances of images that are isolated and have their own environment and set of processes.   
 
+We gonna see later the command line `docker run <image>`, when you type this line in the command line interface, Docker create two two things :  
++ **The process (on RAM) :**  Container is a running linux process, executing instructions on the CPU, isolated by namespaces and cgroups;  
++ **The writable layer (on Disk) :** Since the image is locked and stricktly read-only, Docker create a thin invisible "writable layer" on the top of the image, any new file the container creates or file edited are stored inside the temporary writable layer.  
 
 ## Docker Editions
 ### Entreprise Edition
@@ -226,7 +233,7 @@ Docker automatically by default give to each container a random ID and a random 
 <p align=center>
 	<img src="./images/ps.png">
 </p>
-
+![[Pasted image 20260903144109.png]]
 To see all containers running or not we simply use the tag `-a` , so the command is : `docker ps -a` <p align=center>
 	<img src="./images/ps -a.png">
 </p>
@@ -237,4 +244,37 @@ If we want to stop a running container we use the command `docker run <name or I
 <p align=center>
 	<img src="./images/stop.png">
 </p>
-And if we want to delete it completely from 
+
+And if we want to delete it completely for a good reason like stoping it from consumig space, we use now the command :  
+`docker rm <Id or Name>`  
+<p align=center>
+	<img src="./images/rm.png">
+</p>
+
+### docker images / rmi
+This command list all the images available and theire sizes :  
+<p align=center>
+	<img src="./images/docker images.png" width=500>
+</p>
+
+If we want to remove an image from the host, first of all we need to make sure that all the dependent containers are stopped and deleted to be able to delete the images, then use the command :  
+`docker rmi nginx`  
+<p align=center>
+	<img src="./images/docker rmi.png" width=500>
+</p>
+
+### docker pull
+`docker pull` command only **downloads** the image and stops, it doesn't run any container.  
+When to use `docker pull` :  
++ For example you want to run a ubuntu application and you forget that you already have an image in your host about 8 months ago, when using `docker run ubuntu`, docker gonna find the image of the 8 month ago and run it.  
+  For security reasons and to make sure 100% that docker check any updates of the new versions of docker from docker-hub you must use `docker pull ubuntu` and then you can run it `docker run ubuntu`;  
++ Security reasons mind the most, if you run any image directly without checking it using `docker inspect` you end up someday running a maleware into your computer without you know it, so the best approche is to pul the image first and then analyse it using the inspect command and then run it.  
+
+
+### docker exec
+Sometimes we need to execute a command on a running container, for example we want to see the version of a filesystem using inside a running container, we should use the command :  
+`docker exec <container_name> <command_to_execute>`  
+<p align=center>
+	<img src="./images/docker exec.png" width=600>
+</p>
+

@@ -359,3 +359,25 @@ ENTRYPOINT FASK_APP=/opt/source-code/app.py flask run
 ```
 
 And use the command `docker build Dockerfie -t <NameOfImage>`  to build the image and give it a name, this will create the image locally in the host machine. 
+
+## Layered Architecture
+### Definition
+When Docker build an image, it build it in a layered architechture, each line of instruction create a new layer(folder on the hard drive) to the docker image with just the changes from the previos layer, in our example :  
+<p align=center>
+	<img src="./images/layered.png" width=700>
+</p>
+
+### Layer is a folder
+When building an image, docker creates completely separate independent **read-only** folders side-by-side on the host machine for each instruction. They looked like :  
+`/var/lib/docker/overlay2/layer1_ubuntu`   
+`/var/lib/docker/overlay2/layer2_apt`  
+... and so on.  
+
+It case failure of building the image, for example the step  `RUN pip install flask flask-mysql` fails, when restarting the building of the image, docker will not start all over from the beginning again, it use **caching** which is storing the successful layers on the host and continue directly from lalyer it fails.  
+### The writable layer
+After the image is successfuly build, when using the command `docker run <image>` to create the container, Docker create one brand new completely empty folder for that specify container :  
+`var/lib/docker/overlay2/container_writable_layer`  
+
++ Any new file created on the container the kernel writes it directly into the writable layer folder, the image folders remain completely untouched.  
++ When trying to modify existing file on the image, the kernel realize this is locked is a read-only image folder, the kernel then physically copies the file into the writable layer and make the changes on it keeping the original file untouched.    
++ Deleting a file from the image, docker cannot delete the physical file because again it is locked. Instead, the kernel create a special hidden-file inside the temporary writable layer, this file act like a black box hiding the original file we wanna delete from view.   

@@ -304,3 +304,58 @@ Sometimes we need to execute a command on a running container, for example we wa
 <p align=center>
 	<img src="./images/docker exec.png" width=600>
 </p>
+
+# images
+<p align=center>
+	<img src="./images/images.png" width=400>
+</p>
+## Definition
+An image is a package or a template, it is used to create one or more containers, which are running instances of images that are isolated and have their own environment and set of processes.   
+
+## Docker Hub
+<p align=center>
+	<img src="./images/docker hub.png" width=600>
+</p>
+
+Docker hub is the world's public largest software artifact registry, distribution platform, managing and sharing Docker images. We mean by registery a centralized location for storing and sharing docker images.  
+
+## Dockerfile
+Dockerfile is a text file written in a specific format so Docker can understand it.  
+The entire file written in a format of `[INSTRUCTION] [ARGUMENT(S)]` , the instructions on the left are always uppercase, on the right we have the arguments of the instruction.  
+Here are the definition of some instructions :  
++ **FROM :** The absolute starting point, **every** dockerfile must start with the instruction `FROM` which define the base OS should be for the container;  
++ **RUN :** Used to install packages and create directories inside the image.  
+  Syntax example -> `RUN apt-get update && apt-get install -y mariadb-server`  
++ **COPY :** It takes files form the local project folder from the host machine and injects it into the image's filesystem.  
+  Syntax example -> `COPY index.html /usr/share/nginx/html/`   
++ **EXPOSE :** Tells the one whol read the dockerfile which port this container intend to listen on  
+  Syntax example -> `EXPOSE 9090`  
++ **ENTRYPOINT :** It specify an executable that will always run when the container starts up  
+  Syntax example -> 
++ **CMD :** The main process, which takes the PID 1 on the container, it provide the default command to start the actuall service. We can use it as argument with ENTRYPOINT instruction, if this process is stoped the entire container dies
+
+## How to create our own image
+To understand deeply the steps, lets start thinking about what we might do if we want to deploy manually a web application uses flask in the backend, we gonna need the next steps :  
++ OS - Ubuntu;  
++ Update apt repo;  
++ Install dependencies using apt;  
++ Install python dependencies using pip;  
++ Copy the source code to /opt folder;  
++ Run the webserver using "flask" command;  
+
+Create a dockerfile named `Dockerfile` and write down the instruction to run the application in it, everything we say earlier we gonna write it now using dockerfile format in the `Dockerfile`, here is an example of the dockerfile we need to create the image :  
+```Dockerfile
+FROM Ubuntu
+
+RUN apt-get update
+RUN apt-get install python
+
+RUN pip install flask
+RUN pip install fask-mysql
+
+COPY . /opt/source-code
+
+ENTRYPOINT FASK_APP=/opt/source-code/app.py flask run
+```
+
+And use the command `docker build Dockerfie -t <NameOfImage>`  to build the image and give it a name, this will create the image locally in the host machine. 

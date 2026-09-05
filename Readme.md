@@ -305,6 +305,24 @@ Sometimes we need to execute a command on a running container, for example we wa
 	<img src="./images/docker exec.png" width=600>
 </p>
 
+### Environment variables
+Envitonment variables are dynamic KEY=VALUE pairs where all the processes of that system can access to the value of the KEY.  
+
+#### Problematic
+One of the probem solved is the hardcoded values inside the files, for example setting the database password directly inside a file and building the image make anyone with that image to get the password of the database after running the container, and futhermore if you want to change it inside the container you need to rebuild the image because the file exist on the read only layers.
+
+#### Solution
+If you want to include the password inside any file, you need to declare a variabe KEY for example `DB_PSW` on the file and then call it correspondant to the file extension, for example :  
+```js
+SHELL  -> $DB_PSW
+C/C++  -> getenv("DB_PSW")
+NodeJs -> process.env.DB_PSW
+```
+
+Now if you want to set a value to this variable, here is some ways :  
++ **On Dockerfile:** Add a new instruction `ENV` and on the arguments: `DP_PSW=mzanana@1337.ma`;  
++ **At runtime:** Including the `-e` flag the first time running the image: `docker run -e DP_PSW=mzanana@1337.ma <image>`   
+
 # images
 <p align=center>
 	<img src="./images/images.png" width=400>
@@ -332,7 +350,10 @@ Here are the definition of some instructions :
   Syntax example -> `EXPOSE 9090`  
 + **ENTRYPOINT :** It specify an executable that will always run when the container starts up  
   Syntax example -> 
-+ **CMD :** The main process, which takes the PID 1 on the container, it provide the default command to start the actuall service. We can use it as argument with ENTRYPOINT instruction, if this process is stoped the entire container dies
++ **CMD :** The main process, which takes the PID 1 on the container, it provide the default command to start the actuall service. We can use it as argument with ENTRYPOINT instruction, if this process is stoped the entire container dies.  
+  You can write multiple CMD on your dockerfile, but only the last one is executed, all the CMDs before it completely ignored and never executed.  
+
+todo: difference between `CMD sleep 5` and `CMD ["sleep", "5"]`
 
 ## How to create our own image
 To understand deeply the steps, lets start thinking about what we might do if we want to deploy manually a web application uses flask in the backend, we gonna need the next steps :  
@@ -380,4 +401,5 @@ After the image is successfuly build, when using the command `docker run <image>
 
 + Any new file created on the container the kernel writes it directly into the writable layer folder, the image folders remain completely untouched.  
 + When trying to modify existing file on the image, the kernel realize this is locked is a read-only image folder, the kernel then physically copies the file into the writable layer and make the changes on it keeping the original file untouched.    
-+ Deleting a file from the image, docker cannot delete the physical file because again it is locked. Instead, the kernel create a special hidden-file inside the temporary writable layer, this file act like a black box hiding the original file we wanna delete from view.   
++ Deleting a file from the image, docker cannot delete the physical file because again it is locked. Instead, the kernel create a special hidden-file inside the temporary writable layer, this file act like a black box hiding the original file we wanna delete from view.    
+

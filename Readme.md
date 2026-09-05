@@ -68,7 +68,7 @@ VMs are soooo **heavy**, each one contain an entire operating system.
 ### Definition
 Containerization is the **concept, methodology and strategy** of packaging the application with all its runtime environment including the necessary dependencies, system libraries and configuration files, so the application can runs **uniformly** and **consistently** across any infrastructure, and without using another OS like the VMs does.  
 
-All the containers shares the host's kernel, we don't need an independent OS for every container, and that's why the containers are waaaay ligher that the VMs   
+All the containers shares the host's kernel, we don't need an independent OS for every container, and that's why the containers are waaaay lighter that the VMs   
 
 ```js
                  HOST
@@ -94,7 +94,7 @@ So Containerization is the process of creating a container, and when we say proc
 ### How it works
 We already know the container use the same host's kernel, then why doesn't containers see each other files ? and one a container can't take all the CPU memory?  
 
-The isolation is achived using mainly two **linux** features which make boundries for each container :  
+The isolation is achieved using mainly  two **linux** features which make boundries for each container :  
 #### namespaces (what a container can see?)
 namespaces give a process its own isolated view of some system resource, its the one responsible of what a container can see, namespaces separate:  
 + Processes: each container see only its own processes;  
@@ -200,19 +200,6 @@ The main purpose of docker is to package and containerize applications, and to s
 There is a lot of containerized versions of applications available, most organizations have theire own containerized and available in public docker repository called **Docker Hub** or **Docker Store**, we can find images of most operating systems, databases and other services and tools, to run an instance of debian you need just to type in the command line after installing docker on the host machine :   
 `docker run debian`   
 
-### images and containers
-<p align=center>
-	<img src="./images/images.png" width=400>
-</p>
-
-We've talk about images in the last part, but what is the difference between images and containers ?  
-An image is a package or a template, it is used to create one or more containers.   
-Containers are running instances of images that are isolated and have their own environment and set of processes.   
-
-We gonna see later the command line `docker run <image>`, when you type this line in the command line interface, Docker create two two things :  
-+ **The process (on RAM) :**  Container is a running linux process, executing instructions on the CPU, isolated by namespaces and cgroups;  
-+ **The writable layer (on Disk) :** Since the image is locked and stricktly read-only, Docker create a thin invisible "writable layer" on the top of the image, any new file the container creates or file edited are stored inside the temporary writable layer.  
-
 ## Docker Editions
 ### Entreprise Edition
 Entreprise edition is the certified and supported container platform that comes with image management, image security and other features. And this is a **paid** edition.   
@@ -223,9 +210,49 @@ Community edition is the set of the free Docker products, ideal for individual d
 ## Docker Commands
 ### docker run
 `docker run <docker_image>` command is used to run a container from an image, when using `docker run nginx` :  
-+ It look if we already have the image nginx on our host it use it, we mean by the host the system directory where all the images are stored not the current directory when running the commend, and usualy the default docker path where it stores **everything** docker uses is : `var/lib/docker/`;  
++ It looks if we already have the image nginx on our host to use it, we mean by the host the system directory where all the images are stored not the current directory when running the commend, and usually the default docker path where it stores **everything** docker uses is : `var/lib/docker/`;  
 + If the image is not found on the host, docker pull the image from the docker-hub.  
 The command create an instance of the application.  
+
+If not specifying the version of the image, docker pull the latest version on docker-hub:  
+<p align=center>
+	<img src="./images/latest version.png" width=400>
+</p>
+
+we can specify exactly the version we want using the tag :  
+`docker run redis:4.0`  
+<p align=center>
+	<img src="./images/specific version.png" width=600>
+</p>
+
+### -it flag(interactive tty)
+Usually you gonna see `-it` combined much time, but in reality they are independent flags :  
++ `-i` **--interactive :** By default, docker container start a process in the background ignoring completely the keyboard, using the `-i` flag tells docker to keep `STDIN` open and connected to the terminal.  
++ `-t` **--tty :** Using `-i` flag help the container to listen to you, but it cannot display the output in nicely format to human. Using the `-t` flag, the docker container simulates a physical terminal interface like `xterm`, the flag gives you a nice formatted command prompt (`root@container_it:/#`) and also it allows terminal signals to be sent.  
++ <p align=center>
+	<img src="./images/interactive tty.png" width=600>
+</p>
+
+### PORT mapping
+<p align=center>
+	<img src="./images/port mapping.png" width=600>
+</p>
+With the help of namespaces as we discuss earlier, each container got its own private IP address, for example we have container 1 with the IP address `172.17.0.2` and a port `80` of the apache webserver running on it, from inside the container we can access to the server using : `172.17.0.2:80` but the time we are outside the container no one gonna get the access to use `172.17.0.2`, no other containers and neither the host itself.  
+
+Port mapping is one way so the user can access the service inside the container, using the syntax :  
+`-p HOST_PORT:CONTAINER_PORT`  
+on our example running the command `docker run -p 8080:80 web_app` gonna create an instance of the image in form of a container with the apache running on port 80, and gonna get the access to this service using our port 8080 we use on the command.  
+
+### Volume mapping 
+Volume mapping (or bind mounting) is a way to share a folder directly from the isolated container's filesystem into the host machine.  
+**syntax :**  
+`docker run -v /host/path:/container/path <image_name>`  
+
+When working on a container for example a running PostgreSql database to store users and QR codes, if the database saves all data inside the container, the second we run `docker stop` and `docker rm` we gonna loose the entire database we save on it.  
+
+The solution here is the link the path of the data to an external folder exist on our host machine to not loose the data.  
+`docker run -v /home/mzanana/db_qrCodes:/var/lib/postgresql/data postgres`  
+
 
 ### docker ps
 `docker ps` command list all **running** containers and some basic **information** about them. (ps stand for process status).  
@@ -277,4 +304,3 @@ Sometimes we need to execute a command on a running container, for example we wa
 <p align=center>
 	<img src="./images/docker exec.png" width=600>
 </p>
-

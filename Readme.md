@@ -338,22 +338,56 @@ An image is a package or a template, it is used to create one or more containers
 Docker hub is the world's public largest software artifact registry, distribution platform, managing and sharing Docker images. We mean by registery a centralized location for storing and sharing docker images.  
 
 ## Dockerfile
+### Definition
 Dockerfile is a text file written in a specific format so Docker can understand it.  
 The entire file written in a format of `[INSTRUCTION] [ARGUMENT(S)]` , the instructions on the left are always uppercase, on the right we have the arguments of the instruction.  
-Here are the definition of some instructions :  
-+ **FROM :** The absolute starting point, **every** dockerfile must start with the instruction `FROM` which define the base OS should be for the container;  
-+ **RUN :** Used to install packages and create directories inside the image.  
-  Syntax example -> `RUN apt-get update && apt-get install -y mariadb-server`  
-+ **COPY :** It takes files form the local project folder from the host machine and injects it into the image's filesystem.  
-  Syntax example -> `COPY index.html /usr/share/nginx/html/`   
-+ **EXPOSE :** Tells the one whol read the dockerfile which port this container intend to listen on  
-  Syntax example -> `EXPOSE 9090`  
-+ **ENTRYPOINT :** It specify an executable that will always run when the container starts up  
-  Syntax example -> 
-+ **CMD :** The main process, which takes the PID 1 on the container, it provide the default command to start the actuall service. We can use it as argument with ENTRYPOINT instruction, if this process is stoped the entire container dies.  
-  You can write multiple CMD on your dockerfile, but only the last one is executed, all the CMDs before it completely ignored and never executed.  
 
-todo: difference between `CMD sleep 5` and `CMD ["sleep", "5"]`
+### Docker Instructions
+#### FROM
+The absolute starting point, **every** dockerfile must start with the instruction `FROM` which define the base OS should be for the container;  
+
+#### RUN
+Used to install packages and create directories inside the image.  
+**Syntax example:** `RUN apt-get update && apt-get install -y mariadb-server`  
+
+#### COPY
+It takes files form the local project folder from the host machine and injects it into the image's filesystem.  
+**Syntax example :** `COPY index.html /usr/share/nginx/html/`   
+
+#### EXPOSE
+Tells the one who read the dockerfile which port this container intend to listen on  
+**Syntax example :** `EXPOSE 9090`  
+
+### Problematic
+When running some images like ubuntu image, it exit immediately. why is that ?  
+Inside the dockerfile that make the ubuntu image, it run the command `bash` at startup, so bash is the first process that run on the container, bash needs a terminal to start, docker by default does not attach a terminal, so the container exits because the `bash` can't find a terminal and exit, which is the main process with PID 1.   
+
+How to define a specific command to start the container ?  
+One option is to append a command to the `docker run` command, here is an example :  
+`docker run ubuntu sleep 50` this line update the default command used by the image at start up. but what is this default command and how it used on the dockerfile ?  
+
+#### CMD
+CMD is the default suggestion when the user did not specify a command in the `docker run` , if we want to sleep for 5 seconds and we don't have, we have two options :  
++ `docker run ubuntu` and `CMD ["sleep", "5"]` on the dockerfile;
++ `docker run ubuntu sleep 50` , this command **override** any argument of CMD instruction, whatever CMD argument is, will be ignored and replaced with the new command `sleep 50` write on the `docker run` command.  
+
+You can write multiple CMD on your dockerfile, but only the last one is executed, all the CMD instructions before it completely ignored and never executed. 
+
+#### Shell form & Exec form
+Different ways to specify a command on the dockerfile :  
+**Shell form :** Using `CMD nginx`, Docker inject silently a shell executing `/bin/sh -c "nginx"`, the shell is getting PID1, the actual application get pushed to PID2 which cause the failure of receiving the system stop signals;     
+**Exec form :** Using `CMD ["nginx"]` Docker talk to the kernel directly executing the command and the application got the PID 1 and can shut down cleanly.  
+
+#### ENTRYPOINT
+It provides the mandatory baseline, the layer start the actual service command. It specify an executable that will always run when the container starts up, it should **always** start with an executable.    
+**Syntax example :** `ENTRYPOINT ["sleep"]`  
+
+Whatever is written on the ENTRYPOINT gonna be the first layer of the command that start the container:  
+`[argument of entrypoint] [argument of user on docker run / argument of CMD]`
+
+For example : `docker run ubuntu 50` and on the dockerfile `CMD sleep 1337`  and `ENTRYPOINT ["sleep"]`, the final command at start up will be `sleep 50`, with sleep is the PID1 of the ENTRYPOINT and 50 is from the docker run command.  
+
+ If we don't have ENTRYPOINT on the dockerfile, the container gonna run the  `CMD ["sleep", "5"]` as PID1, in this situation `CMD` should always start with an executable.  
 
 ## How to create our own image
 To understand deeply the steps, lets start thinking about what we might do if we want to deploy manually a web application uses flask in the backend, we gonna need the next steps :  
@@ -379,7 +413,7 @@ COPY . /opt/source-code
 ENTRYPOINT FASK_APP=/opt/source-code/app.py flask run
 ```
 
-And use the command `docker build Dockerfie -t <NameOfImage>`  to build the image and give it a name, this will create the image locally in the host machine. 
+And use the command `docker build <DockerfilePath> -t <NameOfImage>`  to build the image and give it a name, this will create the image locally in the host machine. 
 
 ## Layered Architecture
 ### Definition

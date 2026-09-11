@@ -437,3 +437,152 @@ After the image is successfuly build, when using the command `docker run <image>
 + When trying to modify existing file on the image, the kernel realize this is locked is a read-only image folder, the kernel then physically copies the file into the writable layer and make the changes on it keeping the original file untouched.    
 + Deleting a file from the image, docker cannot delete the physical file because again it is locked. Instead, the kernel create a special hidden-file inside the temporary writable layer, this file act like a black box hiding the original file we wanna delete from view.    
 
+
+# Docker compose
+
+## YAML
+### Definiton
+YAML is a human-readable data serialization language used for writing **configuration** files, YAML stand for Yet Another Markup Language, or even Yaml Ain't Markup Language (recursive joke by programmers).  
+
+### Why
+To start a container you may type on the terminal :  
+`docker run -d --name database -p 1337:3636 -e ROOT_PASS=secret@pass DB_image`  
+Sometime we need to run multiple containers that are connected to the same internal network, each with specific volumes. THAT'S TOO MUCH  
+
+YAML helps you move from typing the long command for each container one by one into declaring a single file containing the entire architecture.  
+
+Simply run `docker compose up` , Docker execute all the underlying `docker run` commands, network creation and volume mappings.  
+
+### How
+Rule N1: **NEVER EVER USE TABS IN A YAML FILE**;  
+Key-value pairs: defined as `[variable][colon][space][value]`, the result should look like this : `image: debian`  
+
+**key value pairs :** 
+```CSS
+image: debian:bullseye
+container_name: nginx_server
+restart: always
+```
+
+**Array/list :**
+```css
+ports:
+  - "80:80"
+  - "443:443"
+
+depends_on:
+  - mariadb
+  - wordpress
+```
+The dash `-` character indicate its an element of array
+
+**Dictionary :**
+Set of properties grouped together under an item  
+```css
+nginx:
+  build: ./nginx
+  container_name: web_server
+  expose: 443
+```
+
+
+## docker-compose.yaml
+### Definition
+docker compose is a tool dor defining and running multi-container applications, making it easy to manage services, networks and volumes in a single YAML configuration file.  
+Then, using a single command `docker compose up` you can create and start all the services of the configuration file.  
+
+### syntax example
+```css
+<container1_name>
+	image: image1
+	ports:
+	  - 5000:80
+	  - 5001:43
+
+<container2_name>
+	build: ./folder/     (if we don't have yet the image we can build it using the build key with the folder that contain the codebase with the dockerfile)
+
+
+<container3_name>
+	image: image3
+
+```
+
+## Versions of docker compose files
+This is important because maybe you gonna face some docker compose files that are different from what you learned.  
+
+### version 1
+This is the version we use earlier, which have a number of limitations, for example if you want to deploy containers in different networks other than the default bridge network and other limitations.  
+
+### version
+The format of the file changed a little bit:  
++ instead of declaring the stack information directly on the file, now they are all encapsulated on a **services** section;
++ From the version 2 and up, Docker needs from you to specify the version of the docker compose file;
++ Networking of version 1, docker compose attaches all containers it runs to the default bridged network, and then uses links to communicates between them;  
++ Networking of version 2, docker compose automatically creates;  todo  
++ depends-on feature: you can specify a start up order
+```css
+version: 2
+services:
+	<container1_name>
+		image: image1
+		ports:
+		  - 5000:80
+		  - 5001:43
+	
+	<container2_name>
+		build: ./folder/
+		deponds_on:
+		  - <container1_name>
+	
+	<container3_name>
+		image: image3
+```
+
+
+# Docker engine
+## Docker engine
+### Definition
+Docker engine is simply a reffered to a host with Docker installed in it. It is the core software that actually make containerization possible.  
+
+### docker engine components
+When installing docker on linux, it basically install three different components :  
++ **Docker Deamon :**  It's a background process that manage docker objects such as images, containers, volums and networks;    
++ **REST API :** It's an API interface that the program can use to talk to the deamon and provide instructions;   
++ **Docker CLI :**  The command line interface to perfom actions such as running a container, creating an image, stoping containers and everything we saw before. It uses the REST API to interact with the docker deamon to provide the instructions requested.   
+
+
+# Docker networking
+When installing docker, it create three networks automatically. Bridge, none and host network.  
+By default the container is attached to the bridge network, and if you want to specify another network you simply type the command : `docker run --network=host <image> `.  
+
+## Docker network availability
+### Bridge Network
+The bridge network is a private network created by docker on the host, all containers are attached to this container by defualt, they get an internal IP address usually on the range of `172.17` series.  
+They can access each other using this internal IP if required.  
+<p align=center>
+	<img src="./images/bridge.png" width=700>
+</p>
+By defualt, docker create only one internal bridge docker network, if we want to isolate more the containers and communicate in privacy, for example i want to create a network of only two containers and the rest of containers in the default bridge network, we need to use the command :  
+`docker network create --driver bridge --subnet 182.18.0.0/16 <NameOfTheNewNetwork>`  
+
+### Host Network
+Host network is associating the containers to the host machine network, on this situation two containers can't listen to the same port on the same host network. 
+
+<p align=center>
+	<img src="./images/host.png" width=400>
+</p>
+
+### None Network
+The containers are not attached to any network, and doesn't have access to any external network or other containers.  
+<p align=center>
+	<img src="./images/none.png" width=400>
+</p>
+
+
+## Docker network commands
+### docker network ls
+### docker network create
+### docker network inspect
+### docker netwrok rm
+

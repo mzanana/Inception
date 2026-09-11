@@ -1,0 +1,30 @@
+services:
+  mariadb:
+    build:
+      context: ./requirements/mariadb
+    image: mariadb:Inception
+    container_name: mariadb
+    restart: on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /run/mysqld/.ready && mariadb-admin -u root -p\"$${MARIADB_ROOT_PASSWORD}\" ping --silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    env_file:
+      - .env
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - inception
+
+networks:
+  inception:
+    name: inception
+
+volumes:
+  mariadb_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/mzanana/data/mariadb

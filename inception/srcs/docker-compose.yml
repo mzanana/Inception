@@ -17,6 +17,36 @@ services:
     networks:
       - inception
 
+  wordpress:
+    build:
+      context: ./requirements/wordpress
+    image: wordpress:Inception
+    container_name: wordpress
+    restart: on-failure
+    env_file:
+      - .env
+    volumes:
+      - wordpress_data:/var/www/html
+    networks:
+      - inception
+    depends_on:
+      mariadb:
+        condition: service_healthy
+  nginx:
+    build:
+      context: ./requirements/nginx
+    image: nginx:Inception
+    container_name: nginx
+    restart: on-failure
+    depends_on:
+      - wordpress
+    networks:
+      - inception
+    ports:
+      - "443:443"
+    volumes:
+      - wordpress_data:/var/www/html
+
 networks:
   inception:
     name: inception
@@ -27,4 +57,10 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /home/mzanana/data/mariadb
+      device: /home/mzanana/data/mariadb  
+  wordpress_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/mzanana/data/wordpress

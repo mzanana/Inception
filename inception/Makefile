@@ -24,7 +24,7 @@ clean:
 
 fclean:
 	@$(COMPOSE) down -v --rmi local
-	@rm -rf $(DATA_PATH)
+	@sudo rm -rf $(DATA_PATH)
 
 re: fclean all
 
